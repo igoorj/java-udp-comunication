@@ -23,7 +23,7 @@ public class UDPServer {
          *
          * Tamanho máximo da janela deslizante (tamWindow)
          * */
-        byte[] bufferRecebidos = new byte[102400000];
+        byte[] bufferRecebidos = new byte[10240000];
         byte[] bufferEnviados;
         int porta = 9876;
 
@@ -58,7 +58,7 @@ public class UDPServer {
                 System.out.println(
                         String.format("Enviando Mensagem: %s", capitalizedSentence));
                 if(funcaoDescarteAleatorio())
-                    Thread.sleep(5);
+                    Thread.sleep(100);
                 serverSocket.send(datagramSend);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -18,7 +18,7 @@ public class UDPClient {
 
         File arquivoToSend = gerarArquivo();
 
-        final long  TIMEOUT = TimeUnit.MILLISECONDS.toMillis(4);
+        final long  TIMEOUT = TimeUnit.MILLISECONDS.toMillis(250);
         byte[] dadosRecebidos = new byte[1024];
         byte[] dadosEnviados;
         final int TAMANHO_PACOTE_MAX = 1024;
@@ -47,7 +47,7 @@ public class UDPClient {
              * */
             if (true) {
 
-                equacaoControle((int) arquivoToSend.getAbsoluteFile().length()/1024, totalPacotesDescartados);
+                equacaoControle(counter, totalPacotesDescartados);
                 clienteSocket.send(datagramPacket);
             }
             long inicio =  System.nanoTime();
@@ -67,7 +67,7 @@ public class UDPClient {
 
                 System.out.println(String.format("Timeout atingido. Reenviando pacote de # %d", counter));
                 clienteSocket.send(datagramPacket);
-                totalPacotesDescartados += totalPacotesDescartados + 1; // incrementando total de pacotes perdidos ou em atraso
+                totalPacotesDescartados++; // incrementando total de pacotes perdidos ou em atraso
                 continue;
             }
 
@@ -93,9 +93,9 @@ public class UDPClient {
 
     public static void equacaoControle(int totalPac, int perdas) {
 
-        System.out.println("Congestionamento identificado. Reduzindo frequência de envios..");
-        int porcentagemDePerdas = perdas / totalPac * 100;
-        if(porcentagemDePerdas >= 5) {
+        if (perdas / totalPac >= 0.05) {
+            System.out.println("Congestionamento identificado. Reduzindo frequência de envios..");
+
             try {
                 Thread.sleep(100);
             } catch (Exception e) {
@@ -121,21 +121,3 @@ public class UDPClient {
 
 
 }
-
-/*
-1) Entrega ordenada para aplicação baseado na ordem dos pacotes (# de sequência). OK
-2) Confirmação acumulativa (ACK acumulativo) do destinatário para o remetente. OK
-3) Utilização de um Buffer de pacotes de tamanho T, onde pacotes ocupam M Bytes. OK
-4) O tamanho de cada pacote é de, no máximo, 1024 Bytes. (M) OK
-5) Deve haver uma janela deslizante com tamanho N no buffer do remetente e do servidor, onde N é igual a pelo menos 10 pacotes de tamanho M.
-6) Números de sequência devem ser utilizados. Eles podem ser inteiros em um total de N*2, ou serem incrementados conforme o fluxo de bytes, como no TCP. OK
-7) Adicione no protocolo um controle de fluxo, onde o remetente deve saber qual o tamanhoda janela N do destinatário, a fim de não afogá-lo.
-8) Por fim, crie um equação de controle de congestionamento, a fim de que, se a rede estiver
-apresentando perda (muitos pacotes com ACK pendentes e timeout), ele deve ser utilizado
-para reduzir o fluxo de envio de pacotes. OK
-9) Avalie seu protocolo sobre um remetente que envia um arquivo de, pelo menos, 10MB, qualquer,
-para 1 destinatário. Para avaliar o controle de congestionamento, insira perdas arbitrárias de
-pacotes no destinatário (você pode fazer isso sorteando a cada chegada de um novo pacotes se ele
-será contabilizado e processado ou descartado). OK
-
- */
